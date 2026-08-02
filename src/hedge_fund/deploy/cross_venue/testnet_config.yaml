@@ -1,0 +1,14 @@
+# Cross-venue carry TESTNET execution (deploy Stage 2) -- testnet-only, dry-run-default, --arm-gated.
+assets: [BTC, ETH]
+k: 7                       # MA window for the engine.decide target (matches Stage-1 paper)
+notional: 50.0            # TINY per-leg testnet notional (USD); each leg trades leg_notional = 0.5*leverage*notional
+leverage: 1.0            # L=1 only
+cap: 100.0               # HARD per-leg notional ceiling: --arm refuses above this
+tolerance: 1.0          # delta-neutral reconciliation tolerance (USD imbalance)
+taker_fee_bps: 4.5
+m_sessions: 3           # gate: >= M armed sessions
+# per-venue symbols: Binance = ccxt perp pair; Hyperliquid = coin name
+symbols:
+  BTC: {binance: "BTC/USDT:USDT", hyperliquid: "BTC"}
+  ETH: {binance: "ETH/USDT:USDT", hyperliquid: "ETH"}
+start: "2019-01-01"      # full-history funding start (the exp081 cache-safety lesson; never a truncating start)

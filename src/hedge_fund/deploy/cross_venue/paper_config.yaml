@@ -1,0 +1,20 @@
+# Cross-venue carry paper harness (deploy Stage 1) -- read-only, places nothing.
+assets: [BTC, ETH]
+k: 7
+notional: 10000.0          # nominal paper book size per asset (USD); each leg trades 0.5*leverage*notional
+leverage: 1.0              # L=1 pilot posture (zero-liquidation)
+taker_fee_bps: 4.5         # per-leg taker fee (Binance ~4.5 bps / HL similar; a round number for the paper model)
+# friction envelope: the exp082-085 modeled round-trip friction at the nominal size is a few bps; 50 bps round-trip
+# is a conservative ceiling (the edge is ~500-900 bps/yr, so per-round-trip friction must stay a small fraction).
+friction_envelope_bps: 50.0
+recency_window: 7          # days of Δf averaged for the recency monitor
+recency_threshold: 0.005   # |recent Δf| must exceed 0.5%/yr annualized to count as "differential alive"
+# alerts.md is DEBOUNCED like L2: a tripwire surfaces only after it persists, so a one-run blip (or a single
+# transient 429) never spams the ~4-week window. Same defaults as the L2 reconfirm monitor.
+alert_persistence: 2       # persistent-FAIL gate: tripwire FAIL for N consecutive daily runs -> alerts.md FAIL
+warn_persistence: 3        # persistent-WARN gate: WARN-or-FAIL (or a data outage) for N runs -> alerts.md WARN
+# start = the loader FULL-HISTORY start, NOT a study-local truncating start. paper_snapshot fetches funding with
+# use_cache=False; the Binance funding cache (quant_marketdata.binance_funding, via QUANT_FUNDING_CACHE) is SHARED
+# with the deployed carry book (which needs 2019+), so a 2023 start would TRUNCATE it (the exp081 lesson). HL
+# funding is 2023+ only anyway (dropna in annualized_diff), so Δf/position/recency are unchanged either way.
+start: "2019-01-01"
