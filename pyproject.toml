@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hedge-fund"
-version = "0.1.0"
+version = "0.1.1"
 description = "Live delta-neutral cross-venue funding-carry deployment: decision engine + testnet execution adapters + fund-ops monitoring + daily paper/testnet harness. Proprietary."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Robin Denis" }]
 
 dependencies = [
-    "quant-marketdata[live] @ git+https://github.com/RoJLD/quant-marketdata.git@v0.1.0",
+    "quant-marketdata[live] @ git+https://github.com/RoJLD/quant-marketdata.git@v0.2.0",
     "pandas>=2.0",
     "numpy>=1.24",
     "pyyaml>=6.0",
