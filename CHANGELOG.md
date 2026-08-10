@@ -1,0 +1,33 @@
+# Changelog
+
+All notable changes to **hedge-fund** (proprietary) are documented here.
+
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
+The live delta-neutral cross-venue funding-carry fund. Design/operational rationale lives in
+[`docs/decisions.md`](docs/decisions.md); the cross-repo dependency map is in the Quant-lab repo's
+`docs/PLATFORM.md`.
+
+## [0.1.1] — 2026-08-02
+
+### Fixed
+- **Stale dependency pin**: bumped `quant-marketdata[live]` from `v0.1.0` → `v0.2.0`. The fund's cross-venue
+  paper/testnet code imports `quant_marketdata.funding_diff` (the funding-data layer added in quant-marketdata
+  v0.2.0), so a clean install from the old pin would `ImportError`; the local suite stayed green only because
+  the installed copy was already 0.2.0 (editable). Caught by the cross-repo pin-coherence guard.
+
+## [0.1.0] — 2026-08-02
+
+Initial release. The live cross-venue funding-carry fund, graduated from the Quant-lab research program to its
+own repository (platform "Move 1"), depending only on the published `quant-marketdata[live]`.
+
+### Added
+- **Decision engine + paper harness** (`deploy/cross_venue`): `engine.decide` (the daily delta-neutral target),
+  the read-only paper snapshot (advisory + log + debounced tripwire alerts), and the testnet orchestrator.
+- **Execution adapters** (`execution/`): the `ExecutionVenue` Protocol + a `FakeTestnetVenue` double + Binance
+  and Hyperliquid testnet adapters (testnet-only by construction, dry-run default, `--arm`-gated).
+- **Two CLIs**: `cross_venue_paper` (read-only daily harness) and `cross_venue_testnet` (dry-run/`--arm`).
+- Fund boilerplate: config/paths loaders, `alerting.evaluate_alert`, LICENSE (proprietary), the T7 cutover
+  runbook (`docs/runbooks/cutover-from-quant-lab.md`).
+
+[0.1.1]: https://github.com/RoJLD/hedge-fund/releases/tag/v0.1.1
+[0.1.0]: https://github.com/RoJLD/hedge-fund/releases/tag/v0.1.0
