@@ -1,0 +1,7 @@
+# Nodes of the Quant-lab graph referenced from here. Declared so that the fund's store validates on its own;
+# the Quant-lab overlay checks that each one still exists there.
+- {id: E-cross-venue-funding-diff, repo: Quant-lab}
+- {id: venue-binance, repo: Quant-lab}
+- {id: venue-hyperliquid, repo: Quant-lab}
+- {id: ds-funding-daily-binance, repo: Quant-lab}
+- {id: ds-funding-daily-hl, repo: Quant-lab}

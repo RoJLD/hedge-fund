@@ -7,6 +7,15 @@ The live delta-neutral cross-venue funding-carry fund. Design/operational ration
 [`docs/decisions.md`](docs/decisions.md); the cross-repo dependency map is in the Quant-lab repo's
 `docs/PLATFORM.md`.
 
+## [Unreleased]
+
+### Added
+- **Operations graph** (`ops/graph/`, `hedge_fund.ops_graph`): the operations layer of the platform graph —
+  the cross-venue deployment, its stages (paper, testnet, live pilot), gates, harnesses, accounts (environment
+  variable names only), limits, runbook and operational ADRs — in the YAML format of Quant-lab's research graph.
+  `python -m hedge_fund.ops_graph check|stages`; Quant-lab ids are declared in `ops/graph/external.yaml`, and
+  Quant-lab overlays the store read-only for cross-repo queries. No new dependency.
+
 ## [0.1.1] — 2026-08-02
 
 ### Fixed

@@ -1,0 +1,42 @@
+# Operations layer of the platform graph (the fund's side; Quant-lab holds the research, work, data, risk,
+# platform and decision layers). Same YAML format as Quant-lab's notes/graph. Validated by
+# `python -m hedge_fund.ops_graph check`; overlaid on the research graph, read-only and dev-local, with
+# `python -m quant_lab.research_graph --overlay ../hedge-fund/ops/graph <command>`.
+# No secret ever lives here: accounts carry environment variable NAMES only.
+
+node_types:
+  - Deployment   # an edge being deployed, through stages
+  - Stage        # one stage of a deployment: paper, testnet, live pilot
+  - Gate         # the condition to move from one stage to the next
+  - Harness      # code that runs a stage (CLI, scheduled task)
+  - Account      # a venue account (env var names only, never values)
+  - Limit        # a risk limit (notional, leverage, caps, envelopes)
+  - Runbook      # an operator procedure
+  - ADR          # an operational decision (docs/decisions.md)
+
+edge_types:
+  - deploys        # Deployment -> research Edge (external)
+  - part_of        # Stage -> Deployment
+  - gated_by       # Stage -> Gate (the stage may start once the gate is met)
+  - depends_on     # Gate -> previous Stage, Harness -> dataset (external), ...
+  - executed_by    # Stage -> Harness
+  - uses_account   # Stage -> Account
+  - limited_by     # Stage -> Limit
+  - runs_on        # Account -> Venue (external)
+  - documented_in  # node -> Runbook
+  - decided_by     # node -> ADR
+
+statuses: [planned, active, blocked, done, retired, met, pending]
+
+layers:
+  operations: [Deployment, Stage, Gate, Harness, Account, Limit, Runbook, ADR]
+
+status_by_type:
+  Deployment: [planned, active, retired]
+  Stage: [planned, active, blocked, done, retired]
+  Gate: [pending, met]
+  Harness: [planned, active, retired]
+  Account: [planned, active, retired]
+  Limit: [active, retired]
+  Runbook: [active, retired]
+  ADR: [active, retired]

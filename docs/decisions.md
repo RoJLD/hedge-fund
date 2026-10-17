@@ -57,3 +57,20 @@ assistant's.
 live/testnet order placement is a human-authorized boundary the AI does not cross.
 **Revisit if.** Never for the AI-boundary half; the cron/arming half advances on Robin's calendar + operability
 of Hyperliquid.
+
+## 2026-10-17 — The operations layer of the platform graph lives here, in YAML, without research code
+
+**Decision.** The fund's operations (deployments, stages, gates, harnesses, accounts, limits, runbooks,
+operational ADRs) are a graph store in `ops/graph/`, in the YAML format of Quant-lab's research graph, validated
+by `hedge_fund.ops_graph` with PyYAML only. Edges to Quant-lab nodes (the research edge, venues, datasets) point
+to ids declared in `ops/graph/external.yaml`. Quant-lab overlays this store read-only (`--overlay`) for
+cross-repo queries; this repo never imports Quant-lab.
+**Context.** Robin asked for every layer of the platform graph; the operations layer was kept out of Quant-lab
+on purpose (fund ⟂ research seam).
+**Why.** The fund keeps its single platform dependency (`quant-marketdata[live]`) and its proprietary surface,
+while impact questions ("what breaks the paper stage if Binance funding data is wrong?") become answerable
+across both repos. Accounts hold environment variable names only, and the validator rejects secret-looking
+properties.
+**Revisit if.** The overlay needs write access from Quant-lab, or the fund needs graph queries at runtime
+(it should not: operations read configs, the graph documents them).
+

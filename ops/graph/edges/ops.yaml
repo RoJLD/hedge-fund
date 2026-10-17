@@ -1,0 +1,32 @@
+# Operations edges. Targets not defined here are declared in ../external.yaml (Quant-lab ids).
+- {from: dep-cross-venue-carry, to: E-cross-venue-funding-diff, type: deploys}
+- {from: stage-paper, to: dep-cross-venue-carry, type: part_of}
+- {from: stage-testnet, to: dep-cross-venue-carry, type: part_of}
+- {from: stage-live-pilot, to: dep-cross-venue-carry, type: part_of}
+
+- {from: stage-testnet, to: gate-paper-to-testnet, type: gated_by}
+- {from: stage-live-pilot, to: gate-testnet-to-live, type: gated_by}
+- {from: gate-paper-to-testnet, to: stage-paper, type: depends_on}
+- {from: gate-testnet-to-live, to: stage-testnet, type: depends_on}
+
+- {from: stage-paper, to: harness-paper-cli, type: executed_by}
+- {from: stage-testnet, to: harness-testnet-cli, type: executed_by}
+- {from: harness-paper-cli, to: harness-monitoring-cycle, type: depends_on}
+- {from: stage-testnet, to: acct-binance-testnet, type: uses_account}
+- {from: stage-testnet, to: acct-hl-testnet, type: uses_account}
+- {from: acct-binance-testnet, to: venue-binance, type: runs_on}
+- {from: acct-hl-testnet, to: venue-hyperliquid, type: runs_on}
+
+- {from: stage-paper, to: lim-paper, type: limited_by}
+- {from: stage-testnet, to: lim-testnet, type: limited_by}
+
+- {from: harness-paper-cli, to: ds-funding-daily-binance, type: depends_on}
+- {from: harness-paper-cli, to: ds-funding-daily-hl, type: depends_on}
+
+- {from: harness-monitoring-cycle, to: rb-cutover, type: documented_in}
+
+- {from: dep-cross-venue-carry, to: adr-hf-2026-08-02-proprietary, type: decided_by}
+- {from: harness-testnet-cli, to: adr-hf-2026-08-02-testnet-only, type: decided_by}
+- {from: stage-testnet, to: adr-hf-2026-08-02-halt-on-naked, type: decided_by}
+- {from: harness-paper-cli, to: adr-hf-2026-08-02-funding-cache, type: decided_by}
+- {from: stage-paper, to: adr-hf-2026-08-02-paper-harness, type: decided_by}
