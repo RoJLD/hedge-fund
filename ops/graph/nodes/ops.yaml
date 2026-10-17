@@ -1,0 +1,59 @@
+# Operations layer seed (2026-10-17), from the deploy configs and docs/decisions.md.
+
+- {id: dep-cross-venue-carry, type: Deployment, status: active,
+   title: "Cross-venue funding-differential carry (Binance vs Hyperliquid), BTC+ETH, delta-neutral",
+   props: {since: "2026-07-30", note: "live differential compressed vs backtest (BTC about -0.75%/yr vs -5.6%)"}}
+
+# stages: record -> paper -> testnet -> tiny live pilot
+- {id: stage-paper, type: Stage, status: active, title: "Stage 1 - read-only paper harness (places nothing, no keys)",
+   anchor: "src/hedge_fund/deploy/cross_venue/paper_config.yaml#top", props: {started: "2026-07-30"}}
+- {id: stage-testnet, type: Stage, status: blocked, title: "Stage 2 - testnet execution (built, tested against fakes, NOT armed)",
+   anchor: "src/hedge_fund/deploy/cross_venue/testnet_config.yaml#top",
+   props: {built: "2026-08-01", external_blocker: "Hyperliquid operability (funded wallet, agent key, testnet) and arming are Robin's steps"}}
+- {id: stage-live-pilot, type: Stage, status: planned, title: "Stage 3 - tiny live pilot, L=1",
+   props: {note: "a NEW, separately-gated code path with its own ADR, never a flag flip on the testnet path"}}
+
+# gates
+- {id: gate-paper-to-testnet, type: Gate, status: pending,
+   title: "About 4 weeks of paper: recency alive (|df| > 0.5%/yr over 7 days), friction within the 50 bps envelope, Hyperliquid operable"}
+- {id: gate-testnet-to-live, type: Gate, status: pending,
+   title: "At least 3 armed testnet sessions reconciled OK (no NAKED, no IMBALANCED), plus a live-pilot ADR"}
+
+# harnesses
+- {id: harness-paper-cli, type: Harness, status: active,
+   title: "python -m hedge_fund.cli.cross_venue_paper (daily, L3 of cmex-monitoring-cycle)"}
+- {id: harness-testnet-cli, type: Harness, status: active,
+   title: "python -m hedge_fund.cli.cross_venue_testnet (dry-run by default, --arm-gated)"}
+- {id: harness-monitoring-cycle, type: Harness, status: active,
+   title: "Scheduled Task cmex-monitoring-cycle (L0 to L3, daily 07:00) on the cron host",
+   props: {host: "the PC where the cutover runbook ran (C:/Users/rdenis/VScode); not installed on E:/VSCODE"}}
+
+# accounts: environment variable NAMES only
+- {id: acct-binance-testnet, type: Account, status: planned, title: "Binance USD-M futures testnet",
+   props: {env: [QUANTLAB_TESTNET_BINANCEFUTURES_KEY, QUANTLAB_TESTNET_BINANCEFUTURES_SECRET]}}
+- {id: acct-hl-testnet, type: Account, status: planned, title: "Hyperliquid testnet agent key",
+   props: {env: [QUANTLAB_TESTNET_HL_AGENT_KEY]}}
+
+# limits
+- {id: lim-paper, type: Limit, status: active,
+   title: "Paper: 10k$ notional per asset, L=1, friction envelope 50 bps, recency floor 0.5%/yr",
+   props: {notional_usd: 10000, leverage: 1.0, friction_envelope_bps: 50, recency_threshold: 0.005}}
+- {id: lim-testnet, type: Limit, status: active,
+   title: "Testnet: 50$ notional, HARD cap 100$ per leg (--arm refuses above), L=1, 1$ reconciliation tolerance",
+   props: {notional_usd: 50, cap_usd: 100, leverage: 1.0, tolerance_usd: 1.0, m_sessions: 3}}
+
+# runbooks
+- {id: rb-cutover, type: Runbook, status: active, title: "Cutover from Quant-lab (order-sensitive: cron flip before removal)",
+   anchor: "docs/runbooks/cutover-from-quant-lab.md#top"}
+
+# operational decisions (docs/decisions.md)
+- {id: adr-hf-2026-08-02-proprietary, type: ADR, status: active,
+   title: "The fund is proprietary and depends ONLY on quant-marketdata[live]", anchor: "docs/decisions.md#2026-08-02-proprietary"}
+- {id: adr-hf-2026-08-02-testnet-only, type: ADR, status: active,
+   title: "Testnet-only by construction; dry-run default; --arm-gated", anchor: "docs/decisions.md#2026-08-02-testnet-only"}
+- {id: adr-hf-2026-08-02-halt-on-naked, type: ADR, status: active,
+   title: "Place-both-then-reconcile, HALT-on-NAKED (no auto-unwind)", anchor: "docs/decisions.md#2026-08-02-halt-on-naked"}
+- {id: adr-hf-2026-08-02-funding-cache, type: ADR, status: active,
+   title: "Shared 2019+ funding cache via QUANT_FUNDING_CACHE", anchor: "docs/decisions.md#2026-08-02-funding-cache"}
+- {id: adr-hf-2026-08-02-paper-harness, type: ADR, status: active,
+   title: "The daily paper harness (L3) runs from this repo; arming stays Robin's", anchor: "docs/decisions.md#2026-08-02-paper-harness"}
