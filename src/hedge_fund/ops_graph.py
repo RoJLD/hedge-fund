@@ -117,7 +117,7 @@ def main(argv=None) -> int:
     parser.add_argument("--store", type=Path, default=STORE)
     parser.add_argument("cmd", choices=["check", "stages"])
     args = parser.parse_args(argv)
-    graph = load(args.store)
+    graph = load(args.store, args.store.resolve().parents[1])
     if args.cmd == "stages":
         print("\n".join(stages(graph)))
         return 0

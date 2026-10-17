@@ -5,7 +5,11 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from hedge_fund.ops_graph import ROOT, STORE, load, main, stages
+from hedge_fund.ops_graph import load, main, stages
+
+# The store lives in the repo, not in the installed package: resolve it from this file.
+ROOT = Path(__file__).resolve().parents[1]
+STORE = ROOT / "ops" / "graph"
 
 
 def _copy(tmp_path: Path) -> Path:
@@ -15,14 +19,14 @@ def _copy(tmp_path: Path) -> Path:
 
 
 def test_real_store_is_valid():
-    graph = load()
+    graph = load(STORE, ROOT)
     assert graph.problems == []
     assert graph.nodes["stage-testnet"]["status"] == "blocked"
     assert "E-cross-venue-funding-diff" in graph.external
 
 
 def test_stages_lists_gates_and_blockers():
-    lines = stages(load())
+    lines = stages(load(STORE, ROOT))
     assert lines[0].startswith("dep-cross-venue-carry [active]")
     testnet = next(line for line in lines if "stage-testnet" in line)
     assert "gate gate-paper-to-testnet [pending]" in testnet and "blocked by:" in testnet
@@ -61,7 +65,7 @@ def test_duplicate_pairs_and_ids(tmp_path):
 
 
 def test_cli_exit_codes(tmp_path, capsys):
-    assert main(["check"]) == 0
+    assert main(["--store", str(STORE), "check"]) == 0
     store = _copy(tmp_path)
     (store / "edges" / "extra.yaml").write_text("- {from: a, to: b, type: nope}\n", encoding="utf-8")
     assert main(["--store", str(store), "check"]) == 1

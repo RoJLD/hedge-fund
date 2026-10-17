@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 import pandas as pd
 import yaml
@@ -29,7 +30,7 @@ from hedge_fund.deploy.cross_venue.testnet import (
 )
 from hedge_fund.paths import ROOT
 
-_CONFIG = ROOT / "src" / "hedge_fund" / "deploy" / "cross_venue" / "testnet_config.yaml"
+_CONFIG = Path(__file__).resolve().parents[1] / "deploy" / "cross_venue" / "testnet_config.yaml"
 _LOG = ROOT / "results" / "carry_testnet" / "session_log.parquet"
 _STATE = ROOT / "results" / "carry_testnet" / "open_position.json"
 
