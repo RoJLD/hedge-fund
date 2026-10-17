@@ -7,7 +7,7 @@ The live delta-neutral cross-venue funding-carry fund. Design/operational ration
 [`docs/decisions.md`](docs/decisions.md); the cross-repo dependency map is in the Quant-lab repo's
 `docs/PLATFORM.md`.
 
-## [Unreleased]
+## [0.2.0] — 2026-10-17
 
 ### Added
 - **Operations graph** (`ops/graph/`, `hedge_fund.ops_graph`): the operations layer of the platform graph —
@@ -15,6 +15,15 @@ The live delta-neutral cross-venue funding-carry fund. Design/operational ration
   variable names only), limits, runbook and operational ADRs — in the YAML format of Quant-lab's research graph.
   `python -m hedge_fund.ops_graph check|stages`; Quant-lab ids are declared in `ops/graph/external.yaml`, and
   Quant-lab overlays the store read-only for cross-repo queries. No new dependency.
+
+### Changed
+- **`quant-marketdata[live]` pinned to `v0.3.0`** (multi-venue data layer; additive, the fund's imports are
+  unchanged). Full suite green on a clean, non-editable install from the tag.
+
+### Fixed
+- **Packaging**: the deploy configs (`paper_config.yaml`, `testnet_config.yaml`) are now package data, and the
+  CLIs resolve them relative to the package instead of `ROOT/src/...`. A non-editable install previously had no
+  config to load (`cross_venue_testnet` failed with FileNotFoundError); editable installs hid it.
 
 ## [0.1.1] — 2026-08-02
 
@@ -38,5 +47,6 @@ own repository (platform "Move 1"), depending only on the published `quant-marke
 - Fund boilerplate: config/paths loaders, `alerting.evaluate_alert`, LICENSE (proprietary), the T7 cutover
   runbook (`docs/runbooks/cutover-from-quant-lab.md`).
 
+[0.2.0]: https://github.com/RoJLD/hedge-fund/releases/tag/v0.2.0
 [0.1.1]: https://github.com/RoJLD/hedge-fund/releases/tag/v0.1.1
 [0.1.0]: https://github.com/RoJLD/hedge-fund/releases/tag/v0.1.0

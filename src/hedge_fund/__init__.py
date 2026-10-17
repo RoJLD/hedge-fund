@@ -6,4 +6,4 @@ the testnet execution adapters, fund-ops monitoring, the runners, and thin boile
 alerting). Testnet-only by construction; the deployment never auto-arms.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

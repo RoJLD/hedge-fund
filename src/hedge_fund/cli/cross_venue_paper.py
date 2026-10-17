@@ -20,7 +20,7 @@ from hedge_fund.alerting import evaluate_alert
 from hedge_fund.deploy.cross_venue.paper import paper_snapshot
 from hedge_fund.paths import ROOT
 
-_CONFIG = ROOT / "src" / "hedge_fund" / "deploy" / "cross_venue" / "paper_config.yaml"
+_CONFIG = Path(__file__).resolve().parents[1] / "deploy" / "cross_venue" / "paper_config.yaml"
 _LOG = ROOT / "results" / "carry_monitor" / "cross_venue_paper_log.parquet"
 _ALERTS = ROOT / "notes" / "alerts.md"
 
