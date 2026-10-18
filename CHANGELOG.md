@@ -7,6 +7,16 @@ The live delta-neutral cross-venue funding-carry fund. Design/operational ration
 [`docs/decisions.md`](docs/decisions.md); the cross-repo dependency map is in the Quant-lab repo's
 `docs/PLATFORM.md`.
 
+## [Unreleased]
+
+### Added
+- **Code layer in the operations graph** (`ops/graph/nodes/code.yaml`, `ops/graph/edges/code.yaml`): 11 `CodeRef`
+  nodes naming the fund's code (`code:hedge-fund:<path>[::<symbol>]`), linked by `implemented_by` from the two
+  harnesses, the deployment, the paper and testnet stages, the testnet limit, two ADRs and the two testnet accounts.
+  `hedge_fund.ops_graph check` verifies with `ast` (no import) that each active file and symbol exists, and enforces
+  the layer's edge rules. Quant-lab's `code-check --overlay ../hedge-fund/ops/graph` sees them too. No new
+  dependency.
+
 ## [0.2.0] — 2026-10-17
 
 ### Added
