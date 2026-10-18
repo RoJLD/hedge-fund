@@ -74,3 +74,18 @@ properties.
 **Revisit if.** The overlay needs write access from Quant-lab, or the fund needs graph queries at runtime
 (it should not: operations read configs, the graph documents them).
 
+## 2026-10-18 — Operations nodes link to the fund's own code; `check` verifies the links
+
+**Decision.** `ops/graph` gains the code layer of the platform graph. `CodeRef` nodes,
+`code:hedge-fund:<path>[::<symbol>]`, name this repo's code only, and operations nodes point at them with
+`implemented_by`: the harness CLIs, the decision engine, the paper and testnet stages, the per-leg cap, the
+HALT-on-NAKED reconcile, the testnet guard and the testnet execution venues. `python -m hedge_fund.ops_graph check`
+reads each active one with `ast` (no import) and fails when its file or symbol is gone. The id and edge rules are
+those of Quant-lab's code layer (its spec `docs/specs/2026-10-17-graph-code-layer-design.md`), re-implemented here
+with the standard library.
+**Context.** Quant-lab added the code layer on 2026-10-17 and left the fund's links to the fund.
+**Why.** Topology rule 1: the fund references research ids, never the reverse, so the links to the fund's code
+belong here. The code lives in this repo, so the existence check runs in `check` and in the test suite, wherever the
+fund is checked out, not only from Quant-lab's dev-local `code-check`. With the overlay, Quant-lab's `impact` and `code` queries reach the fund's code.
+**Revisit if.** The two validators drift (a small shared package in the core would then pay off), or a running
+GitNexus index takes over the existence check.

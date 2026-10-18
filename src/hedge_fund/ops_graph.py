@@ -4,15 +4,23 @@ Same YAML format as Quant-lab's research graph, validated here with PyYAML only 
 research package). Edges may target Quant-lab nodes declared in ``ops/graph/external.yaml``; Quant-lab can overlay
 this store on its own graph (``--overlay``) to query impact and decisions across both.
 
+Code layer: ``CodeRef`` nodes (``code:hedge-fund:<path>[::<symbol>]``, ``<path>`` relative to ``src/`` when the file
+is there) name this repo's code, and operations nodes point at them with ``implemented_by``. ``check`` reads each
+active one with :mod:`ast` (no import) and fails when its file or symbol is gone. Same rules as Quant-lab's
+``quant_lab.research_graph.code_layer``, re-implemented here because the fund never imports research code.
+
 Usage::
 
-    python -m hedge_fund.ops_graph check      # schema, statuses, unique ids, edge endpoints, anchors
+    python -m hedge_fund.ops_graph check      # schema, statuses, unique ids, edge endpoints, anchors, code links
     python -m hedge_fund.ops_graph stages     # deployments and their stages, gates and blockers
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
+import os
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -23,6 +31,9 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 STORE = ROOT / "ops" / "graph"
 SECRET_HINTS = ("secret", "private_key", "api_key", "password", "mnemonic")
+CODE_TYPE = "CodeRef"
+CODE_PREFIX = "code:hedge-fund:"  # this repo's code only: research and data code is Quant-lab's to name
+_SYMBOL = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*")
 
 
 def _load_list(path: Path) -> list:
@@ -87,7 +98,101 @@ def load(store: Path = STORE, repo_root: Path = ROOT) -> OpsGraph:
                 problems.append(f"edge {s}->{d}: several edges on one node pair (graphs keep one)")
             seen_pairs.add((s, d))
             edges.append(e)
+    problems += code_problems(nodes, edges, repo_root)
     return OpsGraph(nodes, edges, external, problems)
+
+
+def _definitions(body: list):
+    """(name, node) for the definitions of a module or class body, looking into if/try blocks."""
+    for stmt in body:
+        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            yield stmt.name, stmt
+        elif isinstance(stmt, (ast.Assign, ast.AnnAssign)):
+            for target in stmt.targets if isinstance(stmt, ast.Assign) else [stmt.target]:
+                for el in target.elts if isinstance(target, (ast.Tuple, ast.List)) else [target]:
+                    if isinstance(el, ast.Name):
+                        yield el.id, stmt
+        elif isinstance(stmt, ast.If):
+            yield from _definitions(stmt.body + stmt.orelse)
+        elif type(stmt).__name__ in ("Try", "TryStar"):
+            handlers = [s for h in stmt.handlers for s in h.body]
+            yield from _definitions(stmt.body + handlers + stmt.orelse + stmt.finalbody)
+
+
+def _defines(tree: ast.Module, symbol: str) -> bool:
+    """Whether ``symbol`` (``name`` or ``Class.attr``) is defined in the module; imports do not count."""
+    body = tree.body
+    for part in symbol.split("."):
+        node = next((n for name, n in _definitions(body) if name == part), None)
+        if node is None:
+            return False
+        body = node.body if isinstance(node, ast.ClassDef) else []
+    return True
+
+
+def _code_file(repo_root: Path, path: str) -> Path | None:
+    """``src/<path>`` or ``<path>`` in this repo, matching case exactly (Windows would match any case)."""
+    for parts in (["src", *path.split("/")], path.split("/")):
+        cur = repo_root
+        for part in parts:
+            try:
+                if part not in os.listdir(cur):
+                    break
+            except OSError:
+                break
+            cur = cur / part
+        else:
+            if cur.is_file():
+                return cur
+    return None
+
+
+def _code_ref_problem(nid: str, node: dict, repo_root: Path) -> str | None:
+    if not nid.startswith(CODE_PREFIX):
+        return f"a CodeRef here names this repo's code: {CODE_PREFIX}<path>[::<symbol>]"
+    path, sep, symbol = nid[len(CODE_PREFIX):].partition("::")
+    if (not path or "\\" in path or ":" in path or path.startswith("/")
+            or any(p in {"", ".", ".."} for p in path.split("/"))):
+        return f"bad path {path!r} (relative POSIX path, no '.' or '..' segment)"
+    if sep and (not _SYMBOL.fullmatch(symbol) or not path.endswith(".py")):
+        return f"bad symbol {symbol!r} (identifiers joined by dots, in a .py file)"
+    if node.get("status") != "active":
+        return None
+    target = _code_file(repo_root, path)
+    if target is None:
+        return f"file missing: neither src/{path} nor {path}"
+    if not sep:
+        return None
+    try:
+        tree = ast.parse(target.read_text(encoding="utf-8"), filename=str(target))
+    except (SyntaxError, ValueError, UnicodeDecodeError) as exc:
+        return f"cannot parse {path}: {exc}"
+    return None if _defines(tree, symbol) else f"{symbol} is not defined in {path}"
+
+
+def code_problems(nodes: Dict[str, dict], edges: List[dict], repo_root: Path) -> List[str]:
+    """Code layer rules: CodeRef ids name this repo's code and exist (when active); ``implemented_by`` points at
+    a CodeRef; a CodeRef has no outgoing edge, receives only ``implemented_by`` and is not an orphan."""
+    code = {nid for nid, n in nodes.items() if n.get("type") == CODE_TYPE}
+    problems = [f"{nid}: ids under 'code:' are reserved for CodeRef nodes"
+                for nid in sorted(nodes) if str(nid).startswith("code:") and nid not in code]
+    for nid in sorted(code):
+        problem = _code_ref_problem(nid, nodes[nid], repo_root)
+        if problem:
+            problems.append(f"{nid}: {problem}")
+    targets = set()
+    for e in edges:
+        s, d, t = e.get("from"), e.get("to"), e.get("type")
+        if t == "implemented_by" and d not in code:
+            problems.append(f"edge {s}->{d}: implemented_by must point at a CodeRef of this repo")
+        if s in code:
+            problems.append(f"edge {s}->{d}: a CodeRef has no outgoing edge (the code graph stays in GitNexus)")
+        if d in code:
+            targets.add(d)
+            if t != "implemented_by":
+                problems.append(f"edge {s}->{d}: only implemented_by may point at a CodeRef, got {t!r}")
+    problems += [f"{nid}: CodeRef with no implemented_by" for nid in sorted(code - targets)]
+    return problems
 
 
 def stages(graph: OpsGraph) -> List[str]:

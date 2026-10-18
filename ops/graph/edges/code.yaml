@@ -1,0 +1,15 @@
+# Code layer edges: <operations node> implemented_by <CodeRef of this repo>. With the Quant-lab overlay,
+# `impact code:hedge-fund:...` lists the stages and deployment that rely on a piece of the fund's code.
+- {from: harness-paper-cli, to: "code:hedge-fund:hedge_fund/cli/cross_venue_paper.py::main", type: implemented_by}
+- {from: harness-testnet-cli, to: "code:hedge-fund:hedge_fund/cli/cross_venue_testnet.py::main", type: implemented_by}
+- {from: lim-testnet, to: "code:hedge-fund:hedge_fund/cli/cross_venue_testnet.py::_cap_guard", type: implemented_by}
+
+- {from: dep-cross-venue-carry, to: "code:hedge-fund:hedge_fund/deploy/cross_venue/engine.py::decide", type: implemented_by}
+- {from: stage-paper, to: "code:hedge-fund:hedge_fund/deploy/cross_venue/paper.py::paper_snapshot", type: implemented_by}
+- {from: stage-testnet, to: "code:hedge-fund:hedge_fund/deploy/cross_venue/testnet.py", type: implemented_by}
+- {from: stage-testnet, to: "code:hedge-fund:hedge_fund/execution/venue.py::ExecutionVenue", type: implemented_by}
+- {from: adr-hf-2026-08-02-halt-on-naked, to: "code:hedge-fund:hedge_fund/deploy/cross_venue/testnet.py::reconcile", type: implemented_by}
+
+- {from: acct-binance-testnet, to: "code:hedge-fund:hedge_fund/execution/binance_testnet.py::BinanceTestnetVenue", type: implemented_by}
+- {from: acct-hl-testnet, to: "code:hedge-fund:hedge_fund/execution/hyperliquid_testnet.py::HyperliquidTestnetVenue", type: implemented_by}
+- {from: adr-hf-2026-08-02-testnet-only, to: "code:hedge-fund:hedge_fund/execution/testnet.py::assert_testnet", type: implemented_by}

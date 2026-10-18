@@ -13,6 +13,7 @@ node_types:
   - Limit        # a risk limit (notional, leverage, caps, envelopes)
   - Runbook      # an operator procedure
   - ADR          # an operational decision (docs/decisions.md)
+  - CodeRef      # code layer: a file or Python symbol of THIS repo, code:hedge-fund:<path>[::<symbol>]
 
 edge_types:
   - deploys        # Deployment -> research Edge (external)
@@ -25,11 +26,13 @@ edge_types:
   - runs_on        # Account -> Venue (external)
   - documented_in  # node -> Runbook
   - decided_by     # node -> ADR
+  - implemented_by # node -> CodeRef (the code that implements it; the code graph itself stays in GitNexus)
 
 statuses: [planned, active, blocked, done, retired, met, pending]
 
 layers:
   operations: [Deployment, Stage, Gate, Harness, Account, Limit, Runbook, ADR]
+  code: [CodeRef]
 
 status_by_type:
   Deployment: [planned, active, retired]
@@ -40,3 +43,4 @@ status_by_type:
   Limit: [active, retired]
   Runbook: [active, retired]
   ADR: [active, retired]
+  CodeRef: [planned, active, retired]   # `check` verifies that an active one exists in this repo

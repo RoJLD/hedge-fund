@@ -1,0 +1,33 @@
+# Code layer of the operations graph: the fund's code that implements its operations nodes (Quant-lab spec
+# docs/specs/2026-10-17-graph-code-layer-design.md, §3.5). Id = code:hedge-fund:<path>[::<symbol>], <path>
+# relative to src/ when the file is there. Only this repo's code: research and data code is named by Quant-lab.
+# `python -m hedge_fund.ops_graph check` verifies that each active file and symbol exists (ast, no import).
+# Edges (implemented_by) in ../edges/code.yaml.
+
+# --- harnesses (the CLIs the stages run) ---
+- {id: "code:hedge-fund:hedge_fund/cli/cross_venue_paper.py::main", type: CodeRef, status: active,
+   title: "Stage 1 paper harness: daily snapshot, advisory, alert log"}
+- {id: "code:hedge-fund:hedge_fund/cli/cross_venue_testnet.py::main", type: CodeRef, status: active,
+   title: "Stage 2 testnet runner: dry-run by default, --arm-gated"}
+- {id: "code:hedge-fund:hedge_fund/cli/cross_venue_testnet.py::_cap_guard", type: CodeRef, status: active,
+   title: "Refuses to arm above the per-leg notional cap"}
+
+# --- deploy: decision engine, paper and testnet stages ---
+- {id: "code:hedge-fund:hedge_fund/deploy/cross_venue/engine.py::decide", type: CodeRef, status: active,
+   title: "Cross-venue carry decision from the funding differential (k-day signal, legs, notional)"}
+- {id: "code:hedge-fund:hedge_fund/deploy/cross_venue/paper.py::paper_snapshot", type: CodeRef, status: active,
+   title: "Paper snapshot: decision + live books -> friction against the envelope"}
+- {id: "code:hedge-fund:hedge_fund/deploy/cross_venue/testnet.py", type: CodeRef, status: active,
+   title: "Testnet session: leg orders, place both, probe / hold open / hold close"}
+- {id: "code:hedge-fund:hedge_fund/deploy/cross_venue/testnet.py::reconcile", type: CodeRef, status: active,
+   title: "Reconcile both fills: OK / IMBALANCED / NAKED (halt, no auto-unwind)"}
+
+# --- execution venues (testnet-only by construction) ---
+- {id: "code:hedge-fund:hedge_fund/execution/venue.py::ExecutionVenue", type: CodeRef, status: active,
+   title: "Execution venue protocol"}
+- {id: "code:hedge-fund:hedge_fund/execution/binance_testnet.py::BinanceTestnetVenue", type: CodeRef, status: active,
+   title: "Binance USD-M futures testnet venue"}
+- {id: "code:hedge-fund:hedge_fund/execution/hyperliquid_testnet.py::HyperliquidTestnetVenue", type: CodeRef,
+   status: active, title: "Hyperliquid testnet venue (agent key)"}
+- {id: "code:hedge-fund:hedge_fund/execution/testnet.py::assert_testnet", type: CodeRef, status: active,
+   title: "Raises on any non-testnet endpoint"}
