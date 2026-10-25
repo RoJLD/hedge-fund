@@ -9,6 +9,11 @@ The live delta-neutral cross-venue funding-carry fund. Design/operational ration
 
 ## [Unreleased]
 
+### Changed
+- **`quant-marketdata[live]` pinned to `v0.5.0`** (from `v0.3.0`; Robin, 2026-10-25): the fund's v0.2 loaders
+  (`binance_funding`, `hyperliquid_funding`) are unchanged; the newer layer adds Paradex, dated contracts, live OI and
+  price snapshots, and the registry fixes (Extended settles in USDC).
+
 ### Added
 - **Code layer in the operations graph** (`ops/graph/nodes/code.yaml`, `ops/graph/edges/code.yaml`): 11 `CodeRef`
   nodes naming the fund's code (`code:hedge-fund:<path>[::<symbol>]`), linked by `implemented_by` from the two
